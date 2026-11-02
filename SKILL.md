@@ -1,6 +1,6 @@
 # Weekly Progress Report Updater
 
-This skill updates Confluence progress report pages by pulling data from Aha! and Jira.
+This skill updates Confluence progress report pages by pulling data from Mission Control (Squad Goals) and Jira.
 
 ## Invocation
 - Trigger: `/weekly-progress-report`
@@ -10,17 +10,10 @@ This skill updates Confluence progress report pages by pulling data from Aha! an
 
 Before running this skill, verify the following tools are available:
 
-### 1. Aha! MCP
-Check if Aha MCP tools are available by testing `mcp__aha__aha_graphql`. If not available, instruct the user:
+### 1. Mission Control (Squad Goals)
+Data is sourced from [Mission Control Squad Goals](https://things.cisco.com/app/squad-goals/). Outcomes, squads, and epics are pulled from the initiative page.
 
-> **Aha! MCP Setup Required**
->
-> You need to set up the Aha! MCP server to use this skill.
->
-> 1. Clone the MCP: `git clone https://github.com/jortessl/aha-mcp`
-> 2. Follow the setup instructions in that repository
-> 3. Add the MCP to your Claude Code configuration
-> 4. Restart Claude Code
+If data exports are available locally (e.g., `mc-outcomes-with-epics.json`, `mc-squads-epics.json`), the skill will use those. Otherwise, the user should provide the initiative URL for reference.
 
 ### 2. Confluence CLI
 Check if `confluence` CLI is available by running `confluence --version`. If not available, instruct the user:
@@ -58,7 +51,7 @@ Respond with:
 > This is the template page. You need to:
 > 1. Make a copy of this page (click "..." menu → "Copy")
 > 2. Rename it with the current date (e.g., "05-15-2026 Agentic AI Progress Report")
-> 3. Update all the Aha! release links and Jira links to point to your actual records
+> 3. Update all the Jira links to point to your actual records
 > 4. Then run `/weekly-progress-report` with the URL of your new page
 
 ## Workflow
@@ -70,7 +63,7 @@ confluence read <page_id> --format html > /tmp/progress-report.html
 
 ### Step 2: Extract All Workstream Cells
 Parse the HTML to find all table cells containing workstreams. Each workstream cell contains:
-- An Aha! release link (e.g., `https://ciscosecurity.aha.io/releases/AAI-R-31`)
+- A Mission Control initiative/outcome reference (squad or outcome name)
 - A Jira link (e.g., `https://cisco-sbg.atlassian.net/browse/ZTMCP-1205`)
 - A progress bar image (`<ri:attachment ri:filename="progress-bar-XX.svg"/>`)
 - A status macro (`<ac:structured-macro ac:name="status">`)
@@ -78,32 +71,16 @@ Parse the HTML to find all table cells containing workstreams. Each workstream c
 
 ### Step 3: For Each Workstream, Update Data
 
-#### 3a. Query Aha! for Release Data
-Use `mcp__aha__aha_graphql` with this query pattern:
-```graphql
-query {
-  release(id: "RELEASE-ID") {
-    referenceNum
-    name
-    progress
-    workflowStatus { name }
-    features {
-      nodes {
-        referenceNum
-        name
-        workflowStatus { name }
-        originalEstimate
-        percentDone
-      }
-    }
-  }
-}
-```
+#### 3a. Query Mission Control for Outcome/Squad Data
+Use the Mission Control data exports or the Squad Goals initiative page to get:
+- **Outcome status** (Active, Planned, Done)
+- **Squad epic counts** and statuses
+- **Progress** — calculated from epic completion (done / total epics)
 
-Extract from response:
-- `progress` → Update progress bar (0-100)
-- `workflowStatus.name` → Update status pill
-- `features.nodes` → Update child features list
+If local JSON exports are available (`mc-outcomes-with-epics.json`, `mc-squads-epics.json`), parse them to get:
+- Outcome name, status, and associated squads
+- Per-squad Jira epics with their statuses (Active, Planned, Done)
+- Progress percentage = (done epics / total epics) × 100
 
 #### 3b. Query Jira for Due Date
 Use `mcp__atlassian__searchJiraIssuesUsingJql` or `mcp__atlassian__getJiraIssue` to get the target due date field.
@@ -130,9 +107,9 @@ confluence attachment-upload <page_id> --file /tmp/progress-bar-XX.svg
 ```
 
 **Status Pill**: Update the `<ac:structured-macro ac:name="status">` element:
-- Map Aha status to Confluence colors:
-  - "Shipped" / "Deployed To Production" / "Live" → Purple
-  - "In Progress" / "In Development" → Yellow
+- Map Mission Control / Jira status to Confluence colors:
+  - "Done" / "Shipped" / "Deployed To Production" / "Live" → Purple
+  - "Active" / "In Progress" / "In Development" → Yellow
   - "Planned" / "Not Started" → Blue
   - "On Track" → Green
   - "At Risk" → Yellow
@@ -140,21 +117,9 @@ confluence attachment-upload <page_id> --file /tmp/progress-bar-XX.svg
 
 **Target Due Date**: Update the date text after "Target Due Date:"
 
-**Child Features**: In the "Child Features:" expand section, replace the content with features from Aha.
+**Child Features**: In the "Child Features:" expand section, replace the content with epics from the squad's Jira data.
 
-Query Aha for child features using:
-```graphql
-query {
-  release(id: "RELEASE-ID") {
-    features {
-      referenceNum
-      name
-      workflowStatus { name }
-      progress
-    }
-  }
-}
-```
+Query Jira for child epics using `mcp__atlassian__searchJiraIssuesUsingJql` with the squad's epic Jira IDs, or use the local `mc-squads-epics.json` export.
 
 Replace the content between `Child Features:</ac:parameter><ac:rich-text-body>` and `</ac:rich-text-body></ac:structured-macro>` with:
 ```html
@@ -163,8 +128,8 @@ Replace the content between `Child Features:</ac:parameter><ac:rich-text-body>` 
     <ac:parameter ac:name="title">PROGRESS%</ac:parameter>
     <ac:parameter ac:name="colour">COLOR</ac:parameter>
   </ac:structured-macro>
-  <a href="https://ciscosecurity.aha.io/features/FEATURE-ID">FEATURE-ID</a> -
-  Feature Name (Status)</p></li>
+  <a href="https://cisco-sbg.atlassian.net/browse/JIRA-ID">JIRA-ID</a> -
+  Epic Name (Status)</p></li>
   ...
 </ul>
 ```
@@ -190,7 +155,7 @@ Within each cell, sort child features from highest percentage to lowest:
 
 This makes it easy to see which features are complete vs still in progress.
 
-If a release has no child features in Aha, display:
+If an outcome/squad has no child epics, display:
 ```html
 <ul><li><p>No child features</p></li></ul>
 ```
@@ -220,12 +185,9 @@ Under each major heading (e.g., "Duo", "Secure Access", "CII"):
 **Fallback when no target due date:**
 If a workstream has no Jira link or no due date, fall back to sorting by:
 1. **Progress percentage** (highest first)
-2. **Aha Status** (deprioritize these statuses to the bottom):
-   - "Under Consideration"
+2. **Status** (deprioritize these statuses to the bottom):
    - "Planned"
    - "Not Started"
-   - "Researching"
-   - "Evaluation"
 
 **Sort priority (top to bottom):**
 ```
@@ -234,33 +196,16 @@ If a workstream has no Jira link or no due date, fall back to sorting by:
 3. [Stretch Goal] items → sorted by % descending
 ```
 
-**Example sort key function:**
-```python
-def get_sort_key(item):
-    # Stretch goals always at bottom
-    stretch_order = 1 if item['stretch'] else 0
-
-    # Deprioritize "waiting" statuses
-    low_priority_statuses = ['under consideration', 'planned', 'not started', 'researching', 'evaluation']
-    status_penalty = 1 if item['status'].lower() in low_priority_statuses else 0
-
-    # 0% items go lower (but above low-priority statuses)
-    zero_penalty = 0.5 if item['pct'] == 0 else 0
-
-    # Higher percentage = higher priority (negative for descending)
-    return (stretch_order, status_penalty, zero_penalty, -item['pct'])
-```
-
 ### Step 5: Calculate Overall Progress
 
 **CRITICAL: Correct Counting Logic**
 
-Count ALL workstreams that have a progress bar, regardless of whether they have an Aha link.
-Do NOT filter by presence of Aha links - some workstreams may not have Aha releases linked yet but still count toward the total.
+Count ALL workstreams that have a progress bar, regardless of whether they have a Jira link.
+Do NOT filter by presence of links - some workstreams may not have links yet but still count toward the total.
 
 **What to count:**
 - Any table cell with a `progress-bar-XX.svg` attachment = 1 workstream
-- Include workstreams even if they have no Aha link or no Jira link
+- Include workstreams even if they have no Jira link
 
 **What to exclude:**
 - Only exclude items with `[Stretch Goal]` or `[Stretch]` in the title
@@ -283,16 +228,15 @@ confluence update <page_id> --file /tmp/progress-report-updated.html --format st
 
 ## Status Mapping Reference
 
-| Aha! Status | Confluence Color |
-|-------------|-----------------|
-| Shipped | Purple |
+| Mission Control / Jira Status | Confluence Color |
+|-------------------------------|-----------------|
+| Done / Shipped | Purple |
 | Deployed To Production | Purple |
 | Live | Purple |
-| In Progress | Yellow |
+| Active / In Progress | Yellow |
 | In Development | Yellow |
 | Development Complete | Green |
-| Planned | Blue |
-| Not Started | Blue |
+| Planned / Not Started | Blue |
 | On Hold | Grey |
 | At Risk | Yellow |
 | Off Track | Red |
@@ -316,16 +260,16 @@ These pills have FIXED colors that must be preserved:
 | off track | Red | |
 | shipped | Purple | |
 | paused/deprioritized | Grey (no colour param) | |
-| in progress | Yellow | User status, not Aha status |
+| in progress | Yellow | User status, not system status |
 
 **Why this matters:**
 - The Instructions section shows EXAMPLES of each status type with their correct colors
 - Workstream owners manually set their "Status Update" pill each week
-- These are NOT pulled from Aha - they reflect the owner's assessment
+- These are NOT pulled from Mission Control - they reflect the owner's assessment
 - Changing these colors breaks the visual consistency and confuses users
 
 **How to avoid changing them:**
-- Only update status pills that have `ac:macro-id="status-{AHA-RELEASE-ID}"` (e.g., `status-AAI-R-31`)
+- Only update status pills that are programmatically managed (progress-derived)
 - NEVER modify status pills in the Instructions section
 - NEVER modify status pills in the "Status Update:" lines
 - When fixing percentage pill colors, ensure regex patterns ONLY match pills where title contains "%" (e.g., `<ac:parameter ac:name="title">50%</ac:parameter>`)
@@ -352,17 +296,28 @@ After updating the page, ALWAYS run these regex replacements to fix any accident
 
 Width of the green bar = percentage × 2 (since total width is 200px for 100%)
 
+## Data Sources
+
+| Source | What it provides | How to access |
+|--------|-----------------|---------------|
+| Mission Control (Squad Goals) | Outcomes, squads, epic mappings, initiative structure | [things.cisco.com](https://things.cisco.com/app/squad-goals/) or local JSON exports |
+| Jira (Atlassian MCP) | Epic details, due dates, sprint data | `mcp__atlassian__getJiraIssue` / `mcp__atlassian__searchJiraIssuesUsingJql` |
+| Confluence CLI | Page read/write | `confluence read` / `confluence update` |
+
 ## Critical Best Practices
 
 **ALWAYS re-read the page fresh before making any updates.**
 Users may add, remove, or modify cells between your reads. Never rely on cached/stale page data from earlier in the conversation. Each update cycle should start with a fresh `confluence read`.
 
-**Count workstreams by progress bars, not by Aha links.**
-Some workstreams may not have Aha releases linked yet but still count toward the total.
+**Count workstreams by progress bars, not by links.**
+Some workstreams may not have links yet but still count toward the total.
+
+**Use Mission Control as the source of truth for outcome/squad structure.**
+Jira is used for epic-level details (due dates, sprint assignments). Mission Control provides the organizational hierarchy (initiatives → outcomes → squads → epics).
 
 ## Error Handling
 
-- If Aha! release not found: Keep existing data, log warning
+- If Mission Control data not available: Fall back to Jira-only data, log warning
 - If Jira issue not found: Keep existing due date, log warning
 - If progress bar SVG missing: Create and upload it
 - If page update fails: Report error, do not retry destructively
@@ -372,9 +327,9 @@ Some workstreams may not have Aha releases linked yet but still count toward the
 User: `/weekly-progress-report https://cisco-sbg.atlassian.net/wiki/spaces/dev/pages/1431935243`
 
 Claude will:
-1. Verify prerequisites (Aha MCP, Confluence CLI, Atlassian MCP)
+1. Verify prerequisites (Mission Control data, Confluence CLI, Atlassian MCP)
 2. Read the page
-3. For each workstream: fetch Aha progress/status/children, fetch Jira due date
+3. For each workstream: get Mission Control outcome/squad status, fetch Jira due date
 4. Update all cells with new data
 5. Sort cells by due date under each heading
 6. Calculate and update overall progress
