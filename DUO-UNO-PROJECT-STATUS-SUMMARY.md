@@ -3,7 +3,7 @@
 **Initiative:** Duo Uno | **Status:** Off track  
 **Source:** [Mission Control - Squad Goals](https://things.cisco.com/app/squad-goals/initiatives/cmvr2rmnb0004mr36uuprjw3e?from=%2F)  
 **Last Updated:** 2026-11-03  
-**Overall Progress:** 27% (34/126 epics done) | **Engineers:** 89 (68.73 FTE) | **Squads:** 78 | **Outcomes on track:** 8 / 57
+**Overall Progress:** 28% (34/123 epics done) | **Engineers:** 89 (68.73 FTE) | **Squads:** 78 | **Outcomes on track:** 8 / 57
 
 > Only outcomes assigned to **Q2 FY27** are included below.  
 > Buckets based on **Category** column from [Duo Uno Roadmap Draft](https://cisco-sbg.atlassian.net/wiki/spaces/dev/pages/1522437185/Duo+Uno+Roadmap+Draft).  
@@ -16,7 +16,7 @@
 | Outcome | Jira | Squad | Progress | Epics | EM |
 |---------|------|-------|----------|-------|----|
 | Kafka Upgrade for CLP and Event Streams | [ZTDP-22](https://cisco-sbg.atlassian.net/browse/ZTDP-22) | [Kafka Upgrade](https://things.cisco.com/app/squad-goals/squads/cmtx4czkx0049t4367ms1wkzr) | 50% (3/6) | 6 | Jubin Sanghvi |
-| Firehose K8s Migration Support | [ZTDP-507](https://cisco-sbg.atlassian.net/browse/ZTDP-507) | [Firehose Kubernetes Migration Support](https://things.cisco.com/app/squad-goals/squads/cmtx4neez004nt436j4xu4fyx) | 0% (0/1) | 1 | Jubin Sanghvi |
+| Firehose on Kubernetes by July 2027 | [ZTDP-507](https://cisco-sbg.atlassian.net/browse/ZTDP-507) | [Firehose Kubernetes Migration Support](https://things.cisco.com/app/squad-goals/squads/cmtx4neez004nt436j4xu4fyx) | 0% (0/1) | 1 | Jubin Sanghvi |
 | SSO: Redis to Valkey Migration | [ZTDP-595](https://cisco-sbg.atlassian.net/browse/ZTDP-595) | [SSO:Redis to Valkey Migration](https://things.cisco.com/app/squad-goals/squads/cmtvtsmro0029o7377vpm4e5c) | 0% (0/1) | 1 | Brandon Wong |
 | SSO Flip-N-Crypt | [ZTDP-496](https://cisco-sbg.atlassian.net/browse/ZTDP-496) | [Duo SSO Systems_Flip N Crypt](https://things.cisco.com/app/squad-goals/squads/cmtxb07bj009lt436zwnsfitp) | 0% (0/1) | 1 | Brandon Wong |
 
@@ -33,7 +33,7 @@
 
 ---
 
-## 3. Features (16 outcomes)
+## 3. Features (15 outcomes)
 
 ### Compliance (3)
 
@@ -68,11 +68,10 @@
 | IDV Adoption and Hardening Enhancements | [ZTDP-395](https://cisco-sbg.atlassian.net/browse/ZTDP-395) | [IDV Adoption and Hardening Enhancements](https://things.cisco.com/app/squad-goals/squads/cmtw390io006co7378uyfxk0p) | 0% (0/9) | 9 | Shane Zerwa |
 | Kit Auth Policy Enhancements | [ZTDP-398](https://cisco-sbg.atlassian.net/browse/ZTDP-398) | [Kit Auth Policy Enhancements](https://things.cisco.com/app/squad-goals/squads/cmtw390io006co7378uyfxk0p) | 12% (1/8) | 8 | Shane Zerwa |
 
-### Other (3)
+### Other (2)
 
 | Outcome | Jira | Squad | Progress | Epics | EM |
 |---------|------|-------|----------|-------|----|
-| KSA Region Expansion | [ZTDP-603](https://cisco-sbg.atlassian.net/browse/ZTDP-603) | [KSA Region Expansion](https://things.cisco.com/app/squad-goals/squads/cmtx4neez004nt436j4xu4fyx) | 0% (0/3) | 3 | Jubin Sanghvi |
 | Self Service Password Reset for Active Directory | [ZTDP-442](https://cisco-sbg.atlassian.net/browse/ZTDP-442) | [Self Service Password Reset](https://things.cisco.com/app/squad-goals/squads/cmtw2yr7q004no7371n0ni6ye) | 0% (0/2) | 2 | Brandon Wong |
 | [P3] Improve AIA Context for Better Conversations | [ZTDUOAI-3762](https://cisco-sbg.atlassian.net/browse/ZTDUOAI-3762) | [[P3] Improve AIA Context for Better Conversations](https://things.cisco.com/app/squad-goals/squads/cmtvojwnh001jo73740f41sj2) | 33% (2/6) | 6 | Wes Wannemacher |
 
@@ -118,16 +117,15 @@
 | 31 | Mythos Remediation | [ZTDP-492](https://cisco-sbg.atlassian.net/browse/ZTDP-492) | Security | 0% | 0/5 |
 | 33 | Dark Theme | [ZTDP-505](https://cisco-sbg.atlassian.net/browse/ZTDP-505) | Features > Identity & Auth | 0% | 0/3 |
 | 34 | Unsupported Browser Report | [ZTDP-506](https://cisco-sbg.atlassian.net/browse/ZTDP-506) | Features > Identity & Auth | 0% | 0/1 |
-| 35 | Firehose K8s Migration | [ZTDP-507](https://cisco-sbg.atlassian.net/browse/ZTDP-507) | Platform | 0% | 0/1 |
+| 35 | Firehose on Kubernetes by July 2027 | [ZTDP-507](https://cisco-sbg.atlassian.net/browse/ZTDP-507) | Platform | 0% | 0/1 |
 | 38 | Sub-account Trials | [ZTMSPG-491](https://cisco-sbg.atlassian.net/browse/ZTMSPG-491) | Features > MSP | 0% | 0/1 |
 | 39 | PSA Integration | [ZTMSPG-492](https://cisco-sbg.atlassian.net/browse/ZTMSPG-492) | Features > MSP | 33% | 1/3 |
 | 43 | Admin API Enhancements | [ZTDP-542](https://cisco-sbg.atlassian.net/browse/ZTDP-542) | Features > MSP | 0% | 0/1 |
 | 44 | CRA | [ZTDP-563](https://cisco-sbg.atlassian.net/browse/ZTDP-563) | Features > Compliance | 50% | 6/12 |
 | 46 | Mobile AiTM Resistant Auth | [ZTDP-567](https://cisco-sbg.atlassian.net/browse/ZTDP-567) | Security | 33% | 1/3 |
 | 54 | SSO: Redis to Valkey | [ZTDP-595](https://cisco-sbg.atlassian.net/browse/ZTDP-595) | Platform | 0% | 0/1 |
-| 56 | KSA Region Expansion | [ZTDP-603](https://cisco-sbg.atlassian.net/browse/ZTDP-603) | Features > Other | 0% | 0/3 |
 
-**Total Q2 FY27 Outcomes: 26** (of 57 total) | **Epics Done: 34/126 (27%)**
+**Total Q2 FY27 Outcomes: 25** (of 57 total) | **Epics Done: 34/123 (28%)**
 
 ---
 
